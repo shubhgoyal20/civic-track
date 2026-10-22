@@ -49,7 +49,7 @@ docs/ARCHITECTURE.md
 ## What is simulated / limitations
 
 - AI verification is rule-based; only a tiny 8x8 image hash is used for duplicate checks.
-- The map is a schematic SVG (sample coordinates). No geocoding.
+- Maps use Leaflet + OpenStreetMap tiles when served normally. The single-file build used for the claude.ai preview falls back to a schematic SVG because tiles are blocked there. No geocoding yet.
 - Face and number-plate blurring is not implemented.
 - Live-capture is enforced in the UI only; a determined user could still spoof the camera or GPS. Real verification needs a server.
 - The QR hand-off opens the Report page on the phone; with no backend the report is stored in that phone's browser.
@@ -59,7 +59,7 @@ docs/ARCHITECTURE.md
 ## Roadmap
 
 1. Port to React + TypeScript + Tailwind.
-2. Leaflet + OpenStreetMap tiles and a geocoder.
+2. Address search (geocoder).
 3. Backend (API + database), real authentication and role-based access, separate private evidence storage.
 4. Real image-similarity and classification models.
 5. Server-side rate limiting and spam review.
