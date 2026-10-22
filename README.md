@@ -20,25 +20,40 @@ Civic Track is a hackathon prototype that lets citizens report civic problems (p
 
 ## Run locally
 
-No build step needed.
-
 ```bash
-git clone <your-repo-url> civic-track
-cd civic-track
-python3 -m http.server 8080      # or: npx serve .
-# open http://localhost:8080
+git clone <your-repo-url> civic-track && cd civic-track
+node server.js            # shared-data mode (Node 18+), http://localhost:8080
+# or static only:  python3 -m http.server 8080
 ```
 
-Geolocation needs `localhost` or HTTPS. Use *Reset demo data* on the Privacy page to restore the seed data.
+GPS and camera work on `localhost` and on any **HTTPS** site, but not on plain `http://` (e.g. a LAN IP). To test on a phone, deploy (below) or use an HTTPS tunnel.
+
+## Deploy
+
+**A. Static hosting** (Netlify, Cloudflare Pages, Vercel, GitHub Pages): publish the repo root; there is no build step. HTTPS is automatic. GitHub Pages: enable *Settings > Pages > GitHub Actions*; `.github/workflows/pages.yml` deploys on push. Data stays in each browser, so a phone report will **not** appear on a laptop.
+
+**B. Node server** (Render, Railway, Fly.io, any VPS): run `npm start`. Set `DATA_FILE` to a path on a persistent disk (free tiers often wipe the disk on restart). Phones and laptops now share the same issues and reports (state syncs every 20 s and on *Refresh*), which also makes the QR hand-off work end to end. No IP addresses are logged or stored.
+
+**Settings** are in `config.js`: `demoData: false` starts with no sample issues; `publicUrl` sets the URL encoded in the phone QR code.
+
+## GPS notes
+
+- Location is requested only after the user taps *Near me* or *Open camera & GPS*. If the browser already granted permission, the map locates automatically. The user's position is kept in memory only and is never saved or sent.
+- Report capture needs a GPS fix of 150 m or better; the app keeps refining the fix while the camera is open.
+- Errors are explained (blocked permission, timeout, no HTTPS). Laptops usually give only coarse Wi-Fi/IP positions, which is why photos are taken on a phone.
 
 ## Project structure
 
 ```
 index.html        entry page
+config.js         deployment settings
+server.js         optional Node server (static files + shared-state API)
+netlify.toml, .github/workflows/pages.yml   hosting configs
 src/styles.css    design tokens, layout, components (light/dark)
 src/app.js        data model, seed data, matching, router, most pages
 src/map.js        interactive maps (Leaflet/OSM + pan/zoom SVG fallback), status chips, fullscreen, locate
 src/charts.js     donut + stacked volume charts
+src/sync.js       optional shared state with the Node server (merge on conflict)
 src/ui.js         dashboard shell, home, live-capture report flow, QR hand-off
 tools/build_single.py  inline everything into one HTML file
 docs/ARCHITECTURE.md
@@ -48,15 +63,15 @@ docs/ARCHITECTURE.md
 
 `Report` (reportId, trackingId, issueId, category, description, originalLatitude/Longitude, locationAccuracy, submittedAt, imageReference, verificationStatus, duplicateMatchScore, reviewStatus), `Issue` (issueId, canonical fields, ward, department, severity, associatedReportIds, total/verified counts, status, threshold, deadline fields, evidenceReferences, activityTimeline) and `TimelineEntry` (eventId, issueId, eventType, timestamp, publicNote, actorRole). No identity fields exist anywhere.
 
-## What is simulated / limitations
+## Limitations (read before going live)
 
-- AI verification is rule-based; only a tiny 8x8 image hash is used for duplicate checks.
-- Maps use Leaflet + OpenStreetMap tiles when served normally. The single-file build used for the claude.ai preview falls back to a schematic SVG because tiles are blocked there. No geocoding yet.
-- Face and number-plate blurring is not implemented.
-- Live-capture is enforced in the UI only; a determined user could still spoof the camera or GPS. Real verification needs a server.
-- The QR hand-off opens the Report page on the phone; with no backend the report is stored in that phone's browser.
-- Persistence, "authority" access and privacy controls are browser-side demos, not a substitute for server-side access control, secure storage and a privacy review. Perfect anonymity is not claimed.
-- The 15-day deadline is a proposed Civic Track workflow, not a legal requirement.
+- **Sample data:** set `demoData: false` for production.
+- **No authentication:** the "authority" role is a UI switch that anyone can use. Do not use this for real government workflows without real login and role-based access.
+- **GPS/camera spoofing:** live capture is enforced in the browser only; a determined user can fake it. Real verification needs server-side checks and review.
+- **Shared state is simple:** one JSON file with last-writer-wins per issue (merge by latest activity). Fine for a demo; use a real database for production.
+- **Spam control** is a per-browser rate limit and duplicate-image hash, not server-side enforcement.
+- **Privacy:** photos are re-drawn (EXIF stripped) but faces and number plates are not blurred, and nothing here has had a privacy audit. Perfect anonymity is not claimed.
+- AI verification is rule-based ("AI-assisted demo"). The 15-day deadline is a proposed workflow, not a legal requirement.
 
 ## Roadmap
 
