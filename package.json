@@ -1,1 +1,24 @@
-{ "name": "civic-track", "version": "1.0.0", "private": true, "description": "Civic Track prototype with optional shared-state server", "scripts": { "start": "node server.js" }, "engines": { "node": ">=18" } }
+{
+  "name": "civic-track",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Civic Track: civic issue reporting with AI photo verification (web, PWA, Android via Capacitor)",
+  "scripts": {
+    "start": "node server.js",
+    "build:www": "node tools/build-www.js",
+    "cap:sync": "npm run build:www && npx cap sync android",
+    "android:perms": "node tools/android-permissions.js",
+    "android:open": "npx cap open android"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "dotenv": "^18.0.8"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/cli": "^8.5.3",
+    "@capacitor/core": "^8.5.3"
+  }
+}

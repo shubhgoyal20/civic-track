@@ -36,6 +36,24 @@ GPS and camera work on `localhost` and on any **HTTPS** site, but not on plain `
 
 **Settings** are in `config.js`: `demoData: false` starts with no sample issues; `publicUrl` sets the URL encoded in the phone QR code.
 
+## AI photo verification (Gemini)
+
+Every report photo is checked on the **server** (the API key never reaches the browser):
+
+1. The phone captures a live photo; the browser sends it to `POST /api/verify`.
+2. `lib/verify.js` asks a Gemini vision model whether the photo shows a real civic problem, whether it matches the chosen category, and whether it looks like a screen/print/selfie/unrelated image.
+3. The server decides: **reject** (not a civic issue, or photo of a screen), **needs review** (unsure, low confidence, category mismatch, poor quality) or **genuine**. Rejected photos are not saved and the user must retake. Only *genuine* reports count toward the verified total. Malformed or failed AI output is never auto-accepted.
+
+Setup: get a key from Google AI Studio and set `GEMINI_API_KEY` (and optionally `GEMINI_MODEL`, default `gemini-3.5-flash`; change it if Google retires the model). Locally copy `.env.example` to `.env`. The same logic runs as a Netlify Function (`netlify/functions/verify.js`) or inside `server.js`. With `requireAI: true` (default in `config.js`) no report is accepted unless the check ran; set `false` only for demos.
+
+Notes: photos are sent to Google for this check, which the app tells the user. Verification is probabilistic: it will miss some fakes and flag some real photos for review. Server-side rate limiting is in-memory per IP (not stored or logged); the Netlify Function has none, so add one for production.
+
+## PWA and Android app
+
+- **PWA**: `manifest.json`, `sw.js` and `icons/` make the site installable ("Add to Home Screen") and cache the app shell. API calls are never cached.
+- **Android (Capacitor)**: `npm install`, then `npx cap add android`, `npm run android:perms` (adds camera/GPS/internet permissions), `npm run cap:sync`, `npm run android:open` and build in Android Studio. The app has no server of its own, so set `apiBase` in `config.js` to your hosted Node server URL and add the app origin to `ALLOWED_ORIGINS` (defaults already allow `https://localhost` and `capacitor://localhost`).
+- If the web app is on Netlify and the Node server elsewhere, either proxy `/api/*` with the commented redirect in `netlify.toml` or set `apiBase` plus `ALLOWED_ORIGINS`.
+
 ## GPS notes
 
 - Location is requested only after the user taps *Near me* or *Open camera & GPS*. If the browser already granted permission, the map locates automatically. The user's position is kept in memory only and is never saved or sent.
@@ -46,7 +64,11 @@ GPS and camera work on `localhost` and on any **HTTPS** site, but not on plain `
 
 ```
 index.html        entry page
-config.js         deployment settings
+config.js         deployment settings (demoData, requireAI, apiBase, publicUrl)
+lib/verify.js     Gemini photo verification (shared by server.js and the Netlify Function)
+src/verify.js     client side of the AI check
+manifest.json, sw.js, icons/   PWA
+capacitor.config.json, tools/  Android wrapper helpers
 server.js         optional Node server (static files + shared-state API)
 netlify.toml, .github/workflows/pages.yml   hosting configs
 src/styles.css    design tokens, layout, components (light/dark)
@@ -71,7 +93,7 @@ docs/ARCHITECTURE.md
 - **Shared state is simple:** one JSON file with last-writer-wins per issue (merge by latest activity). Fine for a demo; use a real database for production.
 - **Spam control** is a per-browser rate limit and duplicate-image hash, not server-side enforcement.
 - **Privacy:** photos are re-drawn (EXIF stripped) but faces and number plates are not blurred, and nothing here has had a privacy audit. Perfect anonymity is not claimed.
-- AI verification is rule-based ("AI-assisted demo"). The 15-day deadline is a proposed workflow, not a legal requirement.
+- The 15-day deadline is a proposed workflow, not a legal requirement.
 
 ## Roadmap
 

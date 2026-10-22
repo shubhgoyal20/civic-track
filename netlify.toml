@@ -1,8 +1,72 @@
 [build]
   publish = "."
+
 [[headers]]
   for = "/*"
   [headers.values]
     Permissions-Policy = "geolocation=(self), camera=(self)"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "no-referrer"
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+# Server-side files must not be public on a static host.
+[[redirects]]
+  from = "/server.js"
+  to = "/404.html"
+  status = 404
+  force = true
+[[redirects]]
+  from = "/package.json"
+  to = "/404.html"
+  status = 404
+  force = true
+[[redirects]]
+  from = "/package-lock.json"
+  to = "/404.html"
+  status = 404
+  force = true
+[[redirects]]
+  from = "/lib/*"
+  to = "/404.html"
+  status = 404
+  force = true
+[[redirects]]
+  from = "/netlify/*"
+  to = "/404.html"
+  status = 404
+  force = true
+[[redirects]]
+  from = "/tools/*"
+  to = "/404.html"
+  status = 404
+  force = true
+[[redirects]]
+  from = "/data/*"
+  to = "/404.html"
+  status = 404
+  force = true
+[[redirects]]
+  from = "/.env*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# AI photo check runs as a Netlify Function (needs GEMINI_API_KEY in Site settings > Environment variables).
+[functions]
+  directory = "netlify/functions"
+[[redirects]]
+  from = "/api/verify"
+  to = "/.netlify/functions/verify"
+  status = 200
+
+# Netlify has no Node server, so /api/* does not exist here.
+# Deploy server.js on Render/Railway/Fly and uncomment to proxy to it:
+# [[redirects]]
+#   from = "/api/*"
+#   to = "https://YOUR-NODE-HOST.example.com/api/:splat"
+#   status = 200
+#   force = true
