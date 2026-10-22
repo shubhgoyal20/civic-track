@@ -1,0 +1,15 @@
+/* Interactive charts: donut (click a segment to filter the map) and stacked volume bars (weekly/monthly, reports/issues). */
+const ARC=2*Math.PI*40;
+function donut(L){const g=GRL.map(k=>[k,L.filter(i=>grp(i)===k).length]),n=L.length||1;let off=0;
+ const seg=g.map(([k,v])=>{const len=v/n*ARC,s=`<circle class="seg" data-a="seg" data-v="${k}" cx="60" cy="60" r="40" fill="none" stroke="${COL[k]}" stroke-width="22" stroke-dasharray="${len} ${ARC-len}" stroke-dashoffset="${-off}" transform="rotate(-90 60 60)"><title>${k}: ${v} issues (${Math.round(v/n*100)}%)</title></circle>`;off+=len;return s}).join('');
+ return`<div class="row" style="gap:18px;flex-wrap:nowrap"><svg viewBox="0 0 120 120" width="150" height="150">${seg}<text x="60" y="58" text-anchor="middle" font-size="20" font-weight="700" fill="#0f172a">${L.length}</text><text x="60" y="73" text-anchor="middle" font-size="9" fill="#64748b">issues</text></svg><div>${g.map(([k,v])=>`<div class="lg" data-a="seg" data-v="${k}"><span style="color:${COL[k]}">●</span> ${k} <b>${v}</b></div>`).join('')}<div class="mut" style="font-size:.78rem;margin-top:6px">Click to view on the map</div></div></div>`}
+function volChart(L){const mode=UI.vm||'week',met=UI.vk||'reports',key=t=>{const d=new Date(t);d.setHours(0,0,0,0);if(mode==='month')return new Date(d.getFullYear(),d.getMonth(),1).getTime();d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getTime()};
+ const Bk={};L.forEach(i=>{const k=key(i.createdAt);(Bk[k]=Bk[k]||{Pending:0,'In Progress':0,Overdue:0,Resolved:0})[grp(i)]+=met==='reports'?i.totalReportCount:1});
+ const ks=Object.keys(Bk).map(Number).sort((a,b)=>a-b);if(!ks.length)return'<p class="mut">No data.</p>';
+ const tot=k=>Object.values(Bk[k]).reduce((a,b)=>a+b,0),top=Math.max(10,Math.ceil(Math.max(...ks.map(tot))/10)*10),cw=440,ch=210,l=32,pw=cw-l-6,ph=ch-32,bw=Math.min(40,pw/ks.length*.6),lab=k=>new Date(k).toLocaleDateString('en-IN',mode==='month'?{month:'short'}:{day:'numeric',month:'short'});
+ let s=`<svg viewBox="0 0 ${cw} ${ch}" style="width:100%;height:auto">`;
+ for(let t=0;t<=4;t++){const y=8+ph-ph*t/4;s+=`<line x1="${l}" x2="${cw-6}" y1="${y}" y2="${y}" stroke="#e2e8f0"/><text x="${l-6}" y="${y+3}" text-anchor="end" font-size="9" fill="#64748b">${Math.round(top*t/4)}</text>`}
+ ks.forEach((k,j)=>{const x=l+pw/ks.length*(j+.5)-bw/2;let y=8+ph;GRL.forEach(g=>{const v=Bk[k][g];if(!v)return;const h=v/top*ph;y-=h;s+=`<rect class="bx" x="${x}" y="${y}" width="${bw}" height="${h}" fill="${COL[g]}" rx="2"><title>${lab(k)} · ${g}: ${v}</title></rect>`});s+=`<text x="${x+bw/2}" y="${ch-10}" text-anchor="middle" font-size="9" fill="#64748b">${lab(k)}</text>`});
+ return s+'</svg><div class="mut" style="font-size:.78rem">'+GRL.map(g=>`<span style="color:${COL[g]}">●</span> ${g}`).join(' &nbsp; ')+` · by week/month the issue was first reported</div>`}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a="seg"]');if(b){UI.mf=b.dataset.v;location.hash='#/map';render()}});
+document.addEventListener('change',e=>{const t=e.target;if(t.dataset.u){UI[t.dataset.u]=t.value;render()}});

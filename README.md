@@ -37,6 +37,8 @@ Geolocation needs `localhost` or HTTPS. Use *Reset demo data* on the Privacy pag
 index.html        entry page
 src/styles.css    design tokens, layout, components (light/dark)
 src/app.js        data model, seed data, matching, router, most pages
+src/map.js        interactive maps (Leaflet/OSM + pan/zoom SVG fallback), status chips, fullscreen, locate
+src/charts.js     donut + stacked volume charts
 src/ui.js         dashboard shell, home, live-capture report flow, QR hand-off
 tools/build_single.py  inline everything into one HTML file
 docs/ARCHITECTURE.md
