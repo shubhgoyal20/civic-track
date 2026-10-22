@@ -1,0 +1,8 @@
+[build]
+  publish = "."
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Permissions-Policy = "geolocation=(self), camera=(self)"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"

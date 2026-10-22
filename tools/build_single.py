@@ -7,7 +7,7 @@ h = rd('index.html')
 h = re.sub(r'<link[^>]*leaflet[^>]*>\n', '', h)
 h = re.sub(r'<script src="[^"]*leaflet[^"]*"></script>\n', '', h)
 h = h.replace('<link rel="stylesheet" href="src/styles.css">', '<style>\n' + rd('src/styles.css') + '</style>')
-h = re.sub(r'<script src="(src/[^"]+\.js)"></script>', lambda m: '<script>\n' + rd(m.group(1)) + '</script>', h)
+h = re.sub(r'<script src="((?:src/)?[^":]+\.js)"></script>', lambda m: '<script>\n' + rd(m.group(1)) + '</script>', h)
 o = sys.argv[1] if len(sys.argv) > 1 else 'dist/civic-track.html'
 os.makedirs(os.path.dirname(os.path.abspath(o)), exist_ok=True)
 open(o, 'w', encoding='utf-8').write(h)

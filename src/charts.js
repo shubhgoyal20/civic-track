@@ -12,4 +12,4 @@ function volChart(L){const mode=UI.vm||'week',met=UI.vk||'reports',key=t=>{const
  ks.forEach((k,j)=>{const x=l+pw/ks.length*(j+.5)-bw/2;let y=8+ph;GRL.forEach(g=>{const v=Bk[k][g];if(!v)return;const h=v/top*ph;y-=h;s+=`<rect class="bx" x="${x}" y="${y}" width="${bw}" height="${h}" fill="${COL[g]}" rx="2"><title>${lab(k)} · ${g}: ${v}</title></rect>`});s+=`<text x="${x+bw/2}" y="${ch-10}" text-anchor="middle" font-size="9" fill="#64748b">${lab(k)}</text>`});
  return s+'</svg><div class="mut" style="font-size:.78rem">'+GRL.map(g=>`<span style="color:${COL[g]}">●</span> ${g}`).join(' &nbsp; ')+` · by week/month the issue was first reported</div>`}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-a="seg"]');if(b){UI.mf=b.dataset.v;location.hash='#/map';render()}});
-document.addEventListener('change',e=>{const t=e.target;if(t.dataset.u){UI[t.dataset.u]=t.value;render()}});
+document.addEventListener('change',e=>{const t=e.target;if(t.dataset.u){UI[t.dataset.u]=t.type==='checkbox'?t.checked:t.dataset.u==='rad'?+t.value:t.value;render()}});

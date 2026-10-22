@@ -1,0 +1,1 @@
+{ "name": "civic-track", "version": "1.0.0", "private": true, "description": "Civic Track prototype with optional shared-state server", "scripts": { "start": "node server.js" }, "engines": { "node": ">=18" } }
