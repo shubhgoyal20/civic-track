@@ -1,7 +1,7 @@
 // Zero-dependency server: serves the static app and a tiny shared-state API (/api/state) so phones and laptops see the same data.
 // Data is kept in one JSON file (DATA_FILE). No IP addresses or user agents are logged or stored.
 try { require('dotenv').config(); } catch (e) {} // optional: loads .env locally
-const http = require('http'), fs = require('fs'), path = require('path'), { verify } = require('./lib/verify');
+const http = require('http'), fs = require('fs'), path = require('path'), { verify, health } = require('./lib/verify');
 const ROOT = __dirname, PORT = process.env.PORT || 8080, DB = process.env.DATA_FILE || path.join(ROOT, 'data', 'state.json');
 let db = { version: 0, state: null };
 try { db = JSON.parse(fs.readFileSync(DB, 'utf8')); } catch (e) {}
@@ -17,6 +17,7 @@ http.createServer((req, res) => {
   const url = req.url.split('?')[0];
   if (url.startsWith('/api/')) { cors(req, res); if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); } }
   if (url === '/api/verify') {
+    if (req.method === 'GET') return json(res, 200, health());
     if (req.method !== 'POST') { res.writeHead(405); return res.end(); }
     const ip = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress).split(',')[0].trim(), c = (hits.get(ip) || 0) + 1; hits.set(ip, c);
     if (c > 8) return json(res, 429, { error: 'rate_limited' });

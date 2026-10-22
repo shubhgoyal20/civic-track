@@ -46,6 +46,8 @@ Every report photo is checked on the **server** (the API key never reaches the b
 
 Setup: get a key from Google AI Studio and set `GEMINI_API_KEY` (and optionally `GEMINI_MODEL`, default `gemini-3.5-flash`; change it if Google retires the model). Locally copy `.env.example` to `.env`. The same logic runs as a Netlify Function (`netlify/functions/verify.js`) or inside `server.js`. With `requireAI: true` (default in `config.js`) no report is accepted unless the check ran; set `false` only for demos.
 
+**Troubleshooting:** open `https://YOUR-SITE/api/verify` in a browser. You should see `{"ok":true,"configured":true,...}`. A 404 means the AI endpoint is not deployed on that host (static hosting such as Netlify Drop, GitHub Pages or the claude.ai preview has none); `configured:false` means `GEMINI_API_KEY` is missing. The report screen now shows the exact reason (missing key, rejected key, quota, wrong model, timeout). If the first model name is retired, the server automatically tries `gemini-3.5-flash`, `gemini-2.5-flash`, `gemini-3-flash-preview` and `gemini-3.1-flash-lite`. On Netlify's free plan functions stop at about 10 s, so a slow model can time out; use the Node server for best results.
+
 Notes: photos are sent to Google for this check, which the app tells the user. Verification is probabilistic: it will miss some fakes and flag some real photos for review. Server-side rate limiting is in-memory per IP (not stored or logged); the Netlify Function has none, so add one for production.
 
 ## PWA and Android app
