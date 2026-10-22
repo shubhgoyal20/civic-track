@@ -10,7 +10,7 @@ Civic Track is a hackathon prototype that lets citizens report civic problems (p
 
 - **Anonymous reporting**: no name, phone, ID or account. Random tracking IDs (e.g. `CT-7F3A92`), never sequential.
 - **GPS capture**: browser Geolocation API, requested only after pressing *Detect My Location*; tap-to-adjust pin; locality fallback; a new GPS fix never silently replaces an adjusted pin.
-- **Photo evidence**: upload or camera; re-drawn on a canvas, which strips EXIF/GPS metadata.
+- **Live on-the-spot capture only**: no gallery upload. The phone camera (getUserMedia) and GPS are used together; the photo is stamped with GPS accuracy and time. On a laptop the Report page shows a **QR code** to continue on a phone. Re-drawing on a canvas strips EXIF metadata.
 - **AI-assisted demo verification**: transparent rule-based checks (labelled as a demo, no real model).
 - **Complaint merging**: weighted match score (distance, category, description, image hash, time) leads to *link*, *manual review* or *new issue*. Original reports are never deleted; merges can be undone and reports separated.
 - **Collective threshold**: configurable (default 25 verified reports) leads to "Threshold Reached" and a proposed 15-day action deadline, then Overdue/escalation.
@@ -36,7 +36,9 @@ Geolocation needs `localhost` or HTTPS. Use *Reset demo data* on the Privacy pag
 ```
 index.html        entry page
 src/styles.css    design tokens, layout, components (light/dark)
-src/app.js        data model, seed data, matching, router, pages
+src/app.js        data model, seed data, matching, router, most pages
+src/ui.js         dashboard shell, home, live-capture report flow, QR hand-off
+tools/build_single.py  inline everything into one HTML file
 docs/ARCHITECTURE.md
 ```
 
@@ -49,6 +51,8 @@ docs/ARCHITECTURE.md
 - AI verification is rule-based; only a tiny 8x8 image hash is used for duplicate checks.
 - The map is a schematic SVG (sample coordinates). No geocoding.
 - Face and number-plate blurring is not implemented.
+- Live-capture is enforced in the UI only; a determined user could still spoof the camera or GPS. Real verification needs a server.
+- The QR hand-off opens the Report page on the phone; with no backend the report is stored in that phone's browser.
 - Persistence, "authority" access and privacy controls are browser-side demos, not a substitute for server-side access control, secure storage and a privacy review. Perfect anonymity is not claimed.
 - The 15-day deadline is a proposed Civic Track workflow, not a legal requirement.
 
